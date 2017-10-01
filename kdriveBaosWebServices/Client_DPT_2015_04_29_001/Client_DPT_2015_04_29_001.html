@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style>img{ height: 100px; float: left; }</style>
+	<script src="jquery-1.4.2.min.js"></script>
+	<script src="jquery.jsonp-2.1.2.min.js"></script>
+	<script src="BAOS_API_2011_01_29_001.min.js"></script>
+	
+	<script>
+		
+		var baos = new BaosLib();													// Create instance of BAOS library
+
+		function OnInit()
+		{
+			strInitIpAddress = "10.0.0.103";										// IP address for initialization
+			
+			baos.API_SetIpAddress(strInitIpAddress);								// Set IP address
+			document.FormSetIpAddr.IpAddr.value = strInitIpAddress;					// Initialize general form with IP address
+			
+			document.FormSetDatapointValueDpt1.ValueDpt1[0].checked = true;			// Initialize default value in form SetDatapointValueDpt1
+			document.FormSetDatapointValueDpt2.ControlDpt2[0].checked = true;		// Initialize default value in form SetDatapointValueDpt2
+			document.FormSetDatapointValueDpt2.ValueDpt2[0].checked = true;			// Initialize default value in form SetDatapointValueDpt2
+			document.FormSetDatapointValueDpt3.ControlDpt3[0].checked = true;		// Initialize default value in form SetDatapointValueDpt3
+			document.FormSetDatapointValueDpt18.ControlDpt18[0].checked = true;		// Initialize default value in form SetDatapointValueDpt18
+			
+			document.FormSetDatapointValueDpt15.FlagErrorDpt15[0].checked = true;			// Initialize default value in form SetDatapointValueDpt15
+			document.FormSetDatapointValueDpt15.FlagPermissionDpt15[0].checked = true;		// Initialize default value in form SetDatapointValueDpt15
+			document.FormSetDatapointValueDpt15.FlagReadDirectionDpt15[0].checked = true;	// Initialize default value in form SetDatapointValueDpt15
+			document.FormSetDatapointValueDpt15.FlagEncryptedDpt15[0].checked = true;		// Initialize default value in form SetDatapointValueDpt15
+		}
+		
+		function getDatapointValue(dptid, callback)
+		{
+			var callback_ = function (dataObjSrvResp) 																	// this callback will be invoked for every message received from the server
+							{
+								console.log(dataObjSrvResp);
+								if (dataObjSrvResp.Service === "GetDatapointValue") 									// only responses for service "GetDatapointValue" will be processed
+								{
+									if (dataObjSrvResp.Result === true && dataObjSrvResp.Data[0].Datapoint == dptid) 	// if it was a success aka result is true and the dptid matches the dptid parameter with which this function was called
+									{
+										callback(dataObjSrvResp.Data[0].Value); 										// invoke the callback which was given as second parameter to this function,
+																														// pass the datapoint value received in the response as parameter to this callback function
+									}
+									else
+									{
+										window.alert("Negative response for GetDatapointValue");
+									}
+								}
+							}
+							baos.API_SetCallbackRespRcvd(callback_); 													// set a callback for all server responses
+							baos.API_GetDatapointValue(dptid, 1, "Default"); 											// send the getdatapoint value request to the server
+		}
+		
+		function OnBtnUpdateIpAddr()
+		{
+			var strTempIpAddr = document.FormSetIpAddr.IpAddr.value;				// Get IP address from text box
+
+			if(baos.API_IsIpAddrValid(strTempIpAddr))								// If IP address is valid
+			{
+				baos.API_SetIpAddress(strTempIpAddr);								// Set new IP address
+				
+				alert("Valid IP addr: " + strTempIpAddr);							// Inform user
+			}
+			else																	// Else: IP address is invalid
+			{
+				alert("Invalid IP address!");										// Inform user
+			}
+		}
+
+		function OnBtnSetDatapointValueDpt1()
+		{
+			var strValue;															// Value
+			
+			if(document.FormSetDatapointValueDpt1.ValueDpt1[0].checked)				// If "true" is selected
+			{
+				strValue = "true";													// Add value
+			}
+			else																	// Else: "false" is selected
+			{
+				strValue = "false";													// Add value
+			}
+			
+			baos.API_SetDatapointValue(1, "DPT1", "SetSendVal", "1 Bit", strValue);	// Set & send communication object 1
+		}
+		
+		function OnBtnSetDatapointValueDpt2()
+		{
+			var strValue;															// Value
+			var strControl;															// Control
+
+			if(document.FormSetDatapointValueDpt2.ControlDpt2[0].checked)			// If "true" is selected
+			{
+				strControl = "true";												// Add control
+			}
+			else																	// Else: "false" is selected
+			{
+				strControl = "false";												// Add control
+			}
+
+			if(document.FormSetDatapointValueDpt2.ValueDpt2[0].checked)				// If "true" is selected
+			{
+				strValue = "true";													// Add value
+			}
+			else																	// Else: "false" is selected
+			{
+				strValue = "false";													// Add value
+			}
+			
+			baos.API_SetDatapointValue(2, "DPT2", "SetSendVal", "2 Bit",
+										strControl, strValue);						// Set & send communication object 2
+		}
+		
+		function OnBtnGetDatapointValueDpt2()						// get value of datapoint 2
+		{
+			getDatapointValue(2, function (newvalue) 															// call function getDatapointValue for datapoint 2
+								{
+									if (newvalue.Control === true) 												// set control element in document to the value received from server
+									{
+										document.FormSetDatapointValueDpt2.ControlDpt2[0].checked = true;
+									}
+									else
+									{
+										document.FormSetDatapointValueDpt2.ControlDpt2[1].checked = true;
+									}
+									if (newvalue.Code === true)
+									{
+										document.FormSetDatapointValueDpt2.ValueDpt2[0].checked = true;
+									}
+									else
+									{
+										ocument.FormSetDatapointValueDpt2.ValueDpt2[1].checked = true;
+									}
+								}
+							  );
+		}
+		
+		function OnBtnSetDatapointValueDpt3()
+		{
+			var strControl;															// Control
+			var strStepCode;														// Step code
+
+			if(document.FormSetDatapointValueDpt3.ControlDpt3[0].checked)			// If "true" is selected
+			{
+				strControl = "true";												// Add control
+			}
+			else																	// Else: "false" is selected
+			{
+				strControl = "false";												// Add control
+			}
+			
+			strStepCode = document.FormSetDatapointValueDpt3.ValueDpt3.value;		// Get step code
+			
+			baos.API_SetDatapointValue(3, "DPT3", "SetSendVal", "4 Bit",
+										strControl, strStepCode);					// Set & send communication object 3
+		}
+		
+		function OnBtnSetDatapointValueDpt4()
+		{
+			var strValue;															// Value
+			
+			strValue = document.FormSetDatapointValueDpt4.ValueDpt4.value;			// Get value
+			baos.API_SetDatapointValue(4, "DPT4", "SetSendVal", "1 Byte", strValue);// Set & send communication object 4
+		}
+		
+		function OnBtnGetDatapointValueDpt4()						// get value of datapoint 4
+		{
+			getDatapointValue(4, function (newvalue)
+								 {
+									document.FormSetDatapointValueDpt4.ValueDpt4.value = newvalue;	// set control element in document to the value received from server 
+								 }
+							  );
+		}
+		
+		function OnBtnSetDatapointValueDpt5()
+		{
+			var strValue;															// Value
+			
+			strValue = document.FormSetDatapointValueDpt5.ValueDpt5.value;			// Get value
+			baos.API_SetDatapointValue(5, "DPT5", "SetSendVal", "1 Byte", strValue);// Set & send communication object 5
+		}
+		
+		function OnBtnGetDatapointValueDpt5()						// get value of datapoint 5
+		{
+			getDatapointValue(5, function (newvalue)
+								 {
+									document.FormSetDatapointValueDpt5.ValueDpt5.value = newvalue;	// set control element in document to the value received from server
+								 }
+							 );
+		}
+		
+		function OnBtnSetDatapointValueDpt6()
+		{
+			var strValue;															// Value
+			
+			strValue = document.FormSetDatapointValueDpt6.ValueDpt6.value;			// Get value
+			baos.API_SetDatapointValue(6, "DPT6", "SetSendVal", "1 Byte", strValue);// Set & send communication object 6
+		}
+		
+		function OnBtnGetDatapointValueDpt6()						// get value of datapoint 6
+		{
+			getDatapointValue(6, function (newvalue)
+								 {
+									document.FormSetDatapointValueDpt6.ValueDpt6.value = newvalue;	// set control element in document to the value received from server
+								 }
+							  );
+		}
+		
+		function OnBtnSetDatapointValueDpt7()
+		{
+			var strValue;															// Value
+			
+			strValue = document.FormSetDatapointValueDpt7.ValueDpt7.value;			// Get value
+			baos.API_SetDatapointValue(7, "DPT7", "SetSendVal", "2 Byte", strValue);// Set & send communication object 7
+		}
+		
+		function OnBtnSetDatapointValueDpt8()
+		{
+			var strValue;															// Value
+			
+			strValue = document.FormSetDatapointValueDpt8.ValueDpt8.value;			// Get value
+			baos.API_SetDatapointValue(8, "DPT8", "SetSendVal", "2 Byte", strValue);// Set & send communication object 8
+		}
+		
+		function OnBtnSetDatapointValueDpt9()
+		{
+			var strValue;															// Value
+			
+			strValue = document.FormSetDatapointValueDpt9.ValueDpt9.value;			// Get value
+			baos.API_SetDatapointValue(9, "DPT9", "SetSendVal", "2 Byte", strValue);// Set & send communication object 9
+		}
+		
+		function OnBtnSetDatapointValueDpt10()
+		{
+			var strWeekday;															// Weekday
+			var strHour;															// Hour
+			var strMinute;															// Minute
+			var strSecond;															// Second
+			
+			strWeekday = document.FormSetDatapointValueDpt10.DayDpt10.value;		// Get weekday
+			strHour = document.FormSetDatapointValueDpt10.HourDpt10.value;			// Get hour
+			strMinute = document.FormSetDatapointValueDpt10.MinutesDpt10.value;		// Get minutes
+			strSecond = document.FormSetDatapointValueDpt10.SecondsDpt10.value;		// Get seconds
+			
+			baos.API_SetDatapointValue(10, "DPT10", "SetSendVal", "3 Byte",
+										strWeekday, strHour, strMinute, strSecond);	// Set & send communication object 10
+		}
+		
+		function OnBtnSetDatapointValueDpt11()
+		{
+			var strDay;																// Day
+			var strMonth;															// Month
+			var strYear;															// Year
+			
+			strDay = document.FormSetDatapointValueDpt11.DayDpt11.value;			// Get day
+			strMonth = document.FormSetDatapointValueDpt11.MonthDpt11.value;		// Get month
+			strYear = document.FormSetDatapointValueDpt11.YearDpt11.value;			// Get year
+			
+			baos.API_SetDatapointValue(11, "DPT11", "SetSendVal", "3 Byte",
+										strDay, strMonth, strYear);					// Set & send communication object 11
+		}
+		
+		function OnBtnSetDatapointValueDpt12()
+		{
+			var strValue;															// Value
+			
+			strValue = document.FormSetDatapointValueDpt12.ValueDpt12.value;		// Get value
+			baos.API_SetDatapointValue(12, "DPT12", "SetSendVal", "4 Byte", strValue);// Set & send communication object 12
+		}
+		
+		function OnBtnSetDatapointValueDpt13()
+		{
+			var strValue;															// Value
+			
+			strValue = document.FormSetDatapointValueDpt13.ValueDpt13.value;		// Get value
+			baos.API_SetDatapointValue(13, "DPT13", "SetSendVal", "4 Byte", strValue);// Set & send communication object 13
+		}
+		
+		function OnBtnSetDatapointValueDpt14()
+		{
+			var strValue;															// Value
+			
+			strValue = document.FormSetDatapointValueDpt14.ValueDpt14.value;		// Get value
+			baos.API_SetDatapointValue(14, "DPT14", "SetSendVal", "4 Byte", strValue);// Set & send communication object 14
+		}
+		
+		function OnBtnSetDatapointValueDpt15()
+		{
+			var strCode;															// Access identification code
+			var strIndex;															// Index of access identification code
+			var strFlagError;														// Detection error
+			var strFlagPermission;													// Permission
+			var strFlagReadDirection;												// Read direction
+			var strFlagEncrypted;													// Encryption of access information
+			
+			strCode = document.FormSetDatapointValueDpt15.CodeDpt15.value;			// Get code
+			strIndex = document.FormSetDatapointValueDpt15.IndexDpt15.value;		// Get index
+
+			if(document.FormSetDatapointValueDpt15.FlagErrorDpt15[0].checked)		// If "true" is selected
+			{
+				strFlagError = "true";												// Set error flag
+			}
+			else																	// Else: "false" is selected
+			{
+				strFlagError = "false";												// Set error flag
+			}
+			
+			if(document.FormSetDatapointValueDpt15.FlagPermissionDpt15[0].checked)	// If "true" is selected
+			{
+				strFlagPermission = "true";											// Set permission flag
+			}
+			else																	// Else: "false" is selected
+			{
+				strFlagPermission = "false";										// Set permission flag
+			}
+			
+			if(document.FormSetDatapointValueDpt15.FlagReadDirectionDpt15[0].checked)// If "true" is selected
+			{
+				strFlagReadDirection = "true";										// Set read direction flag
+			}
+			else																	// Else: "false" is selected
+			{
+				strFlagReadDirection = "false";										// Set read direction flag
+			}
+			
+			if(document.FormSetDatapointValueDpt15.FlagEncryptedDpt15[0].checked)	// If "true" is selected
+			{
+				strFlagEncrypted = "true";											// Set encrypted flag
+			}
+			else																	// Else: "false" is selected
+			{
+				strFlagEncrypted = "false";											// Set encrypted flag
+			}
+
+			baos.API_SetDatapointValue(15, "DPT15", "SetSendVal", "4 Byte",
+						strCode, strIndex, strFlagError,
+						strFlagPermission, strFlagReadDirection, strFlagEncrypted);	// Set & send communication object 10
+		}
+		
+		function OnBtnGetDatapointValueDpt15()						// get value of datapoint 15
+		{
+			getDatapointValue(15, function (newvalue)
+								  {
+										document.FormSetDatapointValueDpt15.getCodeDpt15.value = newvalue.Code;		// set control element in document to the value received from server
+										document.FormSetDatapointValueDpt15.getIndexDpt15.value = newvalue.Index;
+				
+										if (newvalue.FlagError === true)
+										{
+											document.FormSetDatapointValueDpt15.getFlagErrorDpt15[0].checked = true;
+										}
+										else
+										{
+											document.FormSetDatapointValueDpt15.getFlagErrorDpt15[1].checked = true;
+										}
+										if (newvalue.FlagPermission === true)
+										{
+											document.FormSetDatapointValueDpt15.getFlagPermissionDpt15[0].checked = true;
+										}
+										else
+										{
+											document.FormSetDatapointValueDpt15.getFlagPermissionDpt15[1].checked = true;
+										}
+										if (newvalue.FlagReadDirection === true)
+										{
+											document.FormSetDatapointValueDpt15.getFlagReadDirectionDpt15[0].checked = true;
+										}
+										else
+										{
+											document.FormSetDatapointValueDpt15.getFlagReadDirectionDpt15[1].checked = true;
+										}
+										if (newvalue.FlagEncrypted === true)
+										{
+											document.FormSetDatapointValueDpt15.getFlagEncryptedDpt15[0].checked = true;
+										}
+										else
+										{
+											document.FormSetDatapointValueDpt15.getFlagEncryptedDpt15[1].checked = true;
+										}
+								  }
+							 )
+		}
+		
+		function OnBtnSetDatapointValueDpt16()
+		{
+			var strValue;															// Value
+			
+			strValue = document.FormSetDatapointValueDpt16.ValueDpt16.value;		// Get value
+			baos.API_SetDatapointValue(16, "DPT16", "SetSendVal", "14 Byte", strValue);// Set & send communication object 16
+		}
+		
+		function OnBtnSetDatapointValueDpt17()
+		{
+			var strScene;															// Scene number
+			
+			strScene = document.FormSetDatapointValueDpt17.SceneDpt17.value;		// Get value
+			baos.API_SetDatapointValue(17, "DPT17", "SetSendVal", "1 Byte", strScene);// Set & send communication object 17
+		}
+		
+		function OnBtnSetDatapointValueDpt18()
+		{
+			var strScene;															// Value
+			var strControl;															// Control
+
+			if(document.FormSetDatapointValueDpt18.ControlDpt18[0].checked)			// If "true" is selected
+			{
+				strControl = "true";												// Add control
+			}
+			else																	// Else: "false" is selected
+			{
+				strControl = "false";												// Add control
+			}
+			strScene = document.FormSetDatapointValueDpt18.SceneDpt18.value;		// Get value
+			baos.API_SetDatapointValue(18, "DPT18", "SetSendVal", "1 Byte",
+										strControl, strScene);						// Set & send communication object 18
+		}
+
+	</script>
+	
+	
+	<style type="text/css">
+	.standard
+	{
+		width: 800px;
+		border: 4px solid cornflowerblue;
+		background: lavender;
+	}
+	</style>
+	
+</head>
+
+<body onload="OnInit()">
+
+	<h1>KNX IP BAOS 771 / 772</h1>
+
+	<div>
+		<form name="FormSetIpAddr">
+			<p>
+				<fieldset class="standard">
+					<legend>General</legend>
+					
+					<table border="0">
+						<colgroup>
+							<col width="700">
+							<col width="200">
+						</colgroup>
+						<tr>
+							<td>
+								<input type="text" id="IpAddr" name="IpAddr" size="15" />
+							</td>
+							<td>
+								<input type="button" value="Update" onclick="OnBtnUpdateIpAddr()" />
+							</td>
+						</tr>
+					</table>
+					
+				</fieldset>
+			</p>
+		</form>
+	</div>
+	
+	<div>
+		<form name="FormSetDatapointValueDpt1">
+			<p>
+			<fieldset class="standard">
+				<legend>SetDatapointValue DPT 1</legend>
+				
+					<table border="0">
+						<colgroup>
+							<col width="700">
+							<col width="200">
+						</colgroup>
+						<tr>
+							<td>
+								Value:
+								<input type="radio" id="ValueDpt1True" name="ValueDpt1" value="true" /> true
+								<input type="radio" id="ValueDpt1False" name="ValueDpt1" value="false" /> false
+							</td>
+							<td>
+								<input type="button" value="SetDatapointValue" onclick="OnBtnSetDatapointValueDpt1()" />
+							</td>
+						</tr>
+					</table>
+
+			</fieldset>
+			</p>
+		</form>
+	</div>
+	
+	<div>
+		<form name="FormSetDatapointValueDpt2">
+			<p>
+			<fieldset class="standard">
+				<legend>SetDatapointValue DPT 2</legend>
+				
+					<table border="0">
+						<colgroup>
+							<col width="250">
+							<col width="450">
+							<col width="200">
+						</colgroup>
+						<tr>
+							<td>
+								Control:
+								<input type="radio" id="ControlDpt2True" name="ControlDpt2" value="true" /> true
+								<input type="radio" id="ControlDpt2False" name="ControlDpt2" value="false" /> false
+							</td>
+							<td>
+								Value:
+								<input type="radio" id="ValueDpt2True" name="ValueDpt2" value="true" /> true
+								<input type="radio" id="ValueDpt2False" name="ValueDpt2" value="false" /> false
+							</td>
+							<td>
+								<input type="button" value="SetDatapointValue" onclick="OnBtnSetDatapointValueDpt2()" />
+							</td>
+							<td>
+								<input type="button" value="GetDatapointValue" onclick="OnBtnGetDatapointValueDpt2()" />
+							</td>
+						</tr>
+					</table>
+				
+			</fieldset>
+			</p>
+		</form>
+	</div>
+	
+	<div>
+		<form name="FormSetDatapointValueDpt3">
+			<p>
+			<fieldset class="standard">
+				<legend>SetDatapointValue DPT 3</legend>
+				
+					<table border="0">
+						<colgroup>
+							<col width="250">
+							<col width="450">
+							<col width="200">
+						</colgroup>
+						<tr>
+							<td>
+								Control:
+								<input type="radio" id="ControlDpt3True" name="ControlDpt3" value="true" /> true
+								<input type="radio" id="ControlDpt3False" name="ControlDpt3" value="false" /> false
+							</td>
+							<td>
+								Value:
+								<select id="ValueDpt3" name="ValueDpt3">
+									<option>0</option>
+									<option>1</option>
+									<option>2</option>
+									<option>3</option>
+									<option>4</option>
+									<option>5</option>
+									<option>6</option>
+									<option>7</option>
+								</select>
+							</td>
+							<td>
+								<input type="button" value="SetDatapointValue" onclick="OnBtnSetDatapointValueDpt3()" />
+							</td>
+						</tr>
+					</table>
+				
+			</fieldset>
+			</p>
+		</form>
+	</div>
+	
+	<div>
+		<form name="FormSetDatapointValueDpt4">
+			<p>
+			<fieldset class="standard">
+				<legend>SetDatapointValue DPT 4</legend>
+				
+					<table border="0">
+						<colgroup>
+							<col width="700">
+							<col width="200">
+						</colgroup>
+						<tr>
+							<td>
+								Value:
+								<input type="text" id="ValueDpt4" name="ValueDpt4" size="1" value="A" />
+							</td>
+							<td>
+								<input type="button" value="SetDatapointValue" onclick="OnBtnSetDatapointValueDpt4()" />
+							</td>
+							<td>
+								<input type="button" value="GetDatapointValue" onclick="OnBtnGetDatapointValueDpt4()" />
+							</td>
+						</tr>
+					</table>
+
+			</fieldset>
+			</p>
+		</form>
+	</div>
+	
+	<div>
+		<form name="FormSetDatapointValueDpt5">
+			<p>
+			<fieldset class="standard">
+				<legend>SetDatapointValue DPT 5</legend>
+				
+					<table border="0">
+						<colgroup>
+							<col width="700">
+							<col width="200">
+						</colgroup>
+						<tr>
+							<td>
+								Value (0..255):
+								<input type="text" id="ValueDpt5" name="ValueDpt5" size="3" value="0" />
+							</td>
+							<td>
+								<input type="button" value="SetDatapointValue" onclick="OnBtnSetDatapointValueDpt5()" />
+							</td>
+								<td>
+								<input type="button" value="GetDatapointValue" onclick="OnBtnGetDatapointValueDpt5()" />
+							</td>
+						</tr>
+					</table>
+
+			</fieldset>
+			</p>
+		</form>
+	</div>
+	
+	<div>
+		<form name="FormSetDatapointValueDpt6">
+			<p>
+			<fieldset class="standard">
+				<legend>SetDatapointValue DPT 6</legend>
+				
+					<table border="0">
+						<colgroup>
+							<col width="700">
+							<col width="200">
+						</colgroup>
+						<tr>
+							<td>
+								Value (-128..127):
+								<input type="text" id="ValueDpt6" name="ValueDpt6" size="4" value="0" />
+							</td>
+							<td>
+								<input type="button" value="SetDatapointValue" onclick="OnBtnSetDatapointValueDpt6()" />
+							</td>
+							<td>
+								<input type="button" value="GetDatapointValue" onclick="OnBtnGetDatapointValueDpt6()" />
+							</td>
+						</tr>
+					</table>
+
+			</fieldset>
+			</p>
+		</form>
+	</div>
+	
+	<div>
+		<form name="FormSetDatapointValueDpt7">
+			<p>
+			<fieldset class="standard">
+				<legend>SetDatapointValue DPT 7</legend>
+				
+					<table border="0">
+						<colgroup>
+							<col width="700">
+							<col width="200">
+						</colgroup>
+						<tr>
+							<td>
+								Value (0..65535):
+								<input type="text" id="ValueDpt7" name="ValueDpt7" size="5" value="0" />
+							</td>
+							<td>
+								<input type="button" value="SetDatapointValue" onclick="OnBtnSetDatapointValueDpt7()" />
+							</td>
+						</tr>
+					</table>
+
+			</fieldset>
+			</p>
+		</form>
+	</div>
+	
+	<div>
+		<form name="FormSetDatapointValueDpt8">
+			<p>
+			<fieldset class="standard">
+				<legend>SetDatapointValue DPT 8</legend>
+				
+					<table border="0">
+						<colgroup>
+							<col width="700">
+							<col width="200">
+						</colgroup>
+						<tr>
+							<td>
+								Value (-32768..32768):
+								<input type="text" id="ValueDpt8" name="ValueDpt8" size="6" value="0" />
+							</td>
+							<td>
+								<input type="button" value="SetDatapointValue" onclick="OnBtnSetDatapointValueDpt8()" />
+							</td>
+						</tr>
+					</table>
+
+			</fieldset>
+			</p>
+		</form>
+	</div>
+	
+	<div>
+		<form name="FormSetDatapointValueDpt9">
+			<p>
+			<fieldset class="standard">
+				<legend>SetDatapointValue DPT 9 (2-Octet Float Value)</legend>
+				
+					<table border="0">
+						<colgroup>
+							<col width="700">
+							<col width="200">
+						</colgroup>
+						<tr>
+							<td>
+								Value (-671088,64..670760,96):
+								<input type="text" id="ValueDpt9" name="ValueDpt9" size="10" value="0" />
+							</td>
+							<td>
+								<input type="button" value="SetDatapointValue" onclick="OnBtnSetDatapointValueDpt9()" />
+							</td>
+						</tr>
+					</table>
+				
+			</fieldset>
+			</p>
+		</form>
+	</div>
+	
+	<div>
+		<form name="FormSetDatapointValueDpt10">
+			<p>
+			<fieldset class="standard">
+				<legend>SetDatapointValue DPT 10 (Time)</legend>
+				
+					<table border="0">
+						<colgroup>
+							<col width="250">
+							<col width="250">
+							<col width="200">
+							<col width="200">
+						</colgroup>
+						<tr>
+							<td>
+								Day:
+								<select id="DayDpt10" name="DayDpt10">
+									<option>Monday</option>
+									<option>Tuesday</option>
+									<option>Wednesday</option>
+									<option>Thursday</option>
+									<option>Friday</option>
+									<option>Saturday</option>
+									<option>Sunday</option>
+									<option>no day</option>
+								</select>
+							</td>
+							<td>
+								Hour (0..23):
+								<input type="text" id="HourDpt10" name="HourDpt10" size="2" value="0" />
+							</td>
+							<td>
+								Minutes (0..59):
+								<input type="text" id="MinutesDpt10" name="MinutesDpt10" size="2" value="0" />
+							</td>
+							<td>
+								Seconds (0..59):
+								<input type="text" id="SecondsDpt10" name="SecondsDpt10" size="2" value="0" />
+							</td>
+						</tr>
+						<tr>
+							<td>
+							</td>
+							<td>
+							</td>
+							<td>
+							</td>
+							<td>
+								<input type="button" value="SetDatapointValue" onclick="OnBtnSetDatapointValueDpt10()" />
+							</td>
+						</tr>
+					</table>
+				
+			</fieldset>
+			</p>
+		</form>
+	</div>
+	
+	<div>
+		<form name="FormSetDatapointValueDpt11">
+			<p>
+			<fieldset class="standard">
+				<legend>SetDatapointValue DPT 11 (Date)</legend>
+				
+					<table border="0">
+						<colgroup>
+							<col width="250">
+							<col width="250">
+							<col width="200">
+							<col width="200">
+						</colgroup>
+						<tr>
+							<td>
+								Day (1..31):
+								<input type="text" id="DayDpt11" name="DayDpt11" size="2" value="1" />
+							</td>
+							<td>
+								Month (1..12):
+								<input type="text" id="MonthDpt11" name="MonthDpt11" size="2" value="1" />
+							</td>
+							<td>
+								Year (0..99):
+								<input type="text" id="YearDpt11" name="YearDpt11" size="2" value="0" />
+							</td>
+							<td>
+								<input type="button" value="SetDatapointValue" onclick="OnBtnSetDatapointValueDpt11()" />
+							</td>
+						</tr>
+					</table>
+
+			</fieldset>
+			</p>
+		</form>
+	</div>
+	
+	<div>
+		<form name="FormSetDatapointValueDpt12">
+			<p>
+			<fieldset class="standard">
+				<legend>SetDatapointValue DPT 12 (4-Octet Unsigned Value)</legend>
+				
+					<table border="0">
+						<colgroup>
+							<col width="700">
+							<col width="200">
+						</colgroup>
+						<tr>
+							<td>
+								Value (0..4294967295):
+								<input type="text" id="ValueDpt12" name="ValueDpt12" size="10" value="0" />
+							</td>
+							<td>
+								<input type="button" value="SetDatapointValue" onclick="OnBtnSetDatapointValueDpt12()" />
+							</td>
+						</tr>
+					</table>
+
+			</fieldset>
+			</p>
+		</form>
+	</div>
+	
+	<div>
+		<form name="FormSetDatapointValueDpt13">
+			<p>
+			<fieldset class="standard">
+				<legend>SetDatapointValue DPT 13 (4-Octet Signed Value)</legend>
+				
+					<table border="0">
+						<colgroup>
+							<col width="700">
+							<col width="200">
+						</colgroup>
+						<tr>
+							<td>
+								Value (-2147483648..2147483647):
+								<input type="text" id="ValueDpt13" name="ValueDpt13" size="11" value="0" />
+							</td>
+							<td>
+								<input type="button" value="SetDatapointValue" onclick="OnBtnSetDatapointValueDpt13()" />
+							</td>
+						</tr>
+					</table>
+				
+			</fieldset>
+			</p>
+		</form>
+	</div>
+	
+	<div>
+		<form name="FormSetDatapointValueDpt14">
+			<p>
+			<fieldset class="standard">
+				<legend>SetDatapointValue DPT 14 (4-Octet Float Value)</legend>
+				
+					<table border="0">
+						<colgroup>
+							<col width="700">
+							<col width="200">
+						</colgroup>
+						<tr>
+							<td>
+								Value (IEEE 754):
+								<input type="text" id="ValueDpt14" name="ValueDpt14" size="11" value="0" />
+							</td>
+							<td>
+								<input type="button" value="SetDatapointValue" onclick="OnBtnSetDatapointValueDpt14()" />
+							</td>
+						</tr>
+					</table>
+				
+			</fieldset>
+			</p>
+		</form>
+	</div>
+	
+	<div>
+		<form name="FormSetDatapointValueDpt15">
+			<p>
+			<fieldset class="standard">
+				<legend>SetDatapointValue DPT 15 (Access Data)</legend>
+				
+					<table border="0">
+						<colgroup>
+							<col width="250">
+							<col width="350">
+							<col width="250">
+							<col width="250">
+						</colgroup>
+						<tr>
+							<td>
+								Code:
+								<input type="text" id="CodeDpt15" name="CodeDpt15" size="8" value="0" />
+							</td>
+							<td>
+								Index:
+								<select id="IndexDpt15" name="IndexDpt15">
+									<option>0</option>
+									<option>1</option>
+									<option>2</option>
+									<option>3</option>
+									<option>4</option>
+									<option>5</option>
+									<option>6</option>
+									<option>7</option>
+									<option>8</option>
+									<option>9</option>
+									<option>10</option>
+									<option>11</option>
+									<option>12</option>
+									<option>13</option>
+									<option>14</option>
+									<option>15</option>
+								</select>
+							</td>
+							<td>
+								getCode:
+								<input type="text" id="getCodeDpt15" name="getCodeDpt15" size="8" />
+							</td>
+							<td>
+								getIndex:
+								<input type="text" id="getIndexDpt15" name="getIndexDpt15" size="8" />
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Flag Error:
+							</td>
+							<td>
+								<input type="radio" id="FlagErrorDpt15True" name="FlagErrorDpt15" value="true" /> true
+								<input type="radio" id="FlagErrorDpt15False" name="FlagErrorDpt15" value="false" /> false
+							</td>
+							<td>
+								get Flag Error:
+							</td>
+							<td>
+								<input type="radio" id="getFlagErrorDpt15True" name="getFlagErrorDpt15" value="true" /> true
+								<input type="radio" id="getFlagErrorDpt15False" name="getFlagErrorDpt15" value="false" /> false
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Flag Permission:
+							</td>
+							<td>
+								<input type="radio" id="FlagPermissionDpt15True" name="FlagPermissionDpt15" value="true" /> true
+								<input type="radio" id="FlagPermissionDpt15False" name="FlagPermissionDpt15" value="false" /> false
+							</td>
+							<td>
+								get Flag Permission:
+							</td>
+							<td>
+								<input type="radio" id="getFlagPermissionDpt15True" name="getFlagPermissionDpt15" value="true" /> true
+								<input type="radio" id="getFlagPermissionDpt15False" name="getFlagPermissionDpt15" value="false" /> false
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Flag Read Direction:
+							</td>
+							<td>
+								<input type="radio" id="FlagReadDirectionDpt15True" name="FlagReadDirectionDpt15" value="true" /> true
+								<input type="radio" id="FlagReadDirectionDpt15False" name="FlagReadDirectionDpt15" value="false" /> false
+							</td>
+							<td>
+								get Flag Read Dir.:
+							</td>
+							<td>
+								<input type="radio" id="getFlagReadDirectionDpt15True" name="getFlagReadDirectionDpt15" value="true" /> true
+								<input type="radio" id="getFlagReadDirectionDpt15False" name="getFlagReadDirectionDpt15" value="false" /> false
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Flag Encrypted:
+							</td>
+							<td>
+								<input type="radio" id="FlagEncryptedDpt15True" name="FlagEncryptedDpt15" value="true" /> true
+								<input type="radio" id="FlagEncryptedDpt15False" name="FlagEncryptedDpt15" value="false" /> false
+							</td>
+							<td>
+								get Flag Encrypted:
+							</td>
+							<td>
+								<input type="radio" id="getFlagEncryptedDpt15True" name="getFlagEncryptedDpt15" value="true" /> true
+								<input type="radio" id="getFlagEncryptedDpt15False" name="getFlagEncryptedDpt15" value="false" /> false
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<input type="button" value="SetDatapointValue" onclick="OnBtnSetDatapointValueDpt15()" />
+							</td>
+							<td>
+								
+							</td>
+							<td>
+
+							</td>
+							<td>
+								<input type="button" value="GetDatapointValue" onclick="OnBtnGetDatapointValueDpt15()" />
+							</td>
+						</tr>
+					</table>
+				
+			</fieldset>
+			</p>
+		</form>
+	</div>
+	
+	<div>
+		<form name="FormSetDatapointValueDpt16">
+			<p>
+			<fieldset class="standard">
+				<legend>SetDatapointValue DPT 16 (String)</legend>
+				
+					<table border="0">
+						<colgroup>
+							<col width="700">
+							<col width="200">
+						</colgroup>
+						<tr>
+							<td>
+								Value:
+								<input type="text" id="ValueDpt16" name="ValueDpt16" size="14" value="String" />
+							</td>
+							<td>
+								<input type="button" value="SetDatapointValue" onclick="OnBtnSetDatapointValueDpt16()" />
+							</td>
+						</tr>
+					</table>
+
+			</fieldset>
+			</p>
+		</form>
+	</div>
+	
+	<div>
+		<form name="FormSetDatapointValueDpt17">
+			<p>
+			<fieldset class="standard">
+				<legend>SetDatapointValue DPT 17 (Scene Number)</legend>
+				
+					<table border="0">
+						<colgroup>
+							<col width="700">
+							<col width="200">
+						</colgroup>
+						<tr>
+							<td>
+								Scene (0..63):
+								<input type="text" id="SceneDpt17" name="SceneDpt17" size="2" value="0" />
+							</td>
+							<td>
+								<input type="button" value="SetDatapointValue" onclick="OnBtnSetDatapointValueDpt17()" />
+							</td>
+						</tr>
+					</table>
+
+			</fieldset>
+			</p>
+		</form>
+	</div>
+	
+	<div>
+		<form name="FormSetDatapointValueDpt18">
+			<p>
+			<fieldset class="standard">
+				<legend>SetDatapointValue DPT 18 (Scene Control)</legend>
+				
+					<table border="0">
+						<colgroup>
+							<col width="250">
+							<col width="450">
+							<col width="200">
+						</colgroup>
+						<tr>
+							<td>
+								Control:
+								<input type="radio" id="ControlDpt18Active" name="ControlDpt18" value="activate" /> activate
+								<input type="radio" id="ControlDpt18Learn" name="ControlDpt18" value="learn" /> learn
+							</td>
+							<td>
+								Scene (0..63):
+								<input type="text" id="SceneDpt18" name="SceneDpt18" size="2" value="0" />
+							</td>
+							<td>
+								<input type="button" value="SetDatapointValue" onclick="OnBtnSetDatapointValueDpt18()" />
+							</td>
+						</tr>
+					</table>
+
+			</fieldset>
+			</p>
+		</form>
+	</div>
+	
+</body>
+</html>

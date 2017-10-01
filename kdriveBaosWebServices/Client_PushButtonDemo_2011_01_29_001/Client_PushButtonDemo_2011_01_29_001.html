@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style>img{ height: 100px; float: left; }</style>
+	<script src="jquery-1.4.2.min.js"></script>
+	<script src="jquery.jsonp-2.1.2.min.js"></script>
+	<script src="BAOS_API_2011_01_29_001.min.js"></script>
+	
+	<script>
+		
+		var baos = new BaosLib();													// Create instance of BAOS library
+
+		function OnInit()
+		{
+			strInitIpAddress = "192.168.1.220";										// IP address for initialization
+			
+			baos.API_SetIpAddress(strInitIpAddress);								// Set IP address
+			document.FormSetIpAddr.IpAddr.value = strInitIpAddress;					// Initialize general form with IP address
+			
+			baos.API_SetCallbackRespRcvd(_API_Callback_RespRcvd);					// Enable callback (response received)
+			baos.API_SetCallbackIndicationUpdate(_API_Callback_IndicationUpdate);	// Enable callback (indication update)
+			baos.API_SetCallbackInvalidSettings(_API_Callback_InvalidSettings);		// Enable callback (invalid settings)
+			baos.API_SetCallbackTransmitError(_API_Callback_Error);					// Enable callback (transmit error)
+		}
+		
+		function OnBtnUpdateIpAddr()
+		{
+			var strTempIpAddr = document.FormSetIpAddr.IpAddr.value;				// Get IP address from text box
+
+			if(baos.API_IsIpAddrValid(strTempIpAddr))								// If IP address is valid
+			{
+				baos.API_SetIpAddress(strTempIpAddr);								// Set new IP address
+				
+				alert("Valid IP addr: " + strTempIpAddr);							// Inform user
+			}
+			else																	// Else: IP address is invalid
+			{
+				alert("Invalid IP address!");										// Inform user
+			}
+		}
+
+		function OnBtnPbDemo_SwitchChn1(value)
+		{
+			if(value == 0)															// If we want to switch off
+			{
+				baos.API_SetDatapointValue(1, "RAW", "SetSendVal", "1 Bit", "0x00");// Set communication object 1 to 0x00
+			}
+			else																	// Else: We want to switch on
+			{
+				baos.API_SetDatapointValue(1, "RAW", "SetSendVal", "1 Bit", "0x01");// Set communication object 1 to 0x01
+			}
+		}
+		
+		function OnBtnPbDemo_SwitchChn2(value)
+		{
+			if(value == 0)															// If we want to switch off
+			{
+				baos.API_SetDatapointValue(3, "RAW", "SetSendVal", "1 Bit", "0x00");// Set communication object 1 to 0x00
+			}
+			else																	// Else: We want to switch on
+			{
+				baos.API_SetDatapointValue(3, "RAW", "SetSendVal", "1 Bit", "0x01");// Set communication object 1 to 0x01
+			}
+		}
+
+		function OnBtnStartIndicationListener()
+		{
+			baos.API_StartIndicationListener("Raw");								// Start indication listener
+		}
+		
+		function OnBtnStopIndicationListener()
+		{
+			baos.API_StopIndicationListener();										// Stop indication listener
+		}
+
+		
+		function _API_Callback_RespRcvd(dataObjSrvResp)
+		{
+
+		}
+		
+		function _API_Callback_Error()
+		{
+			alert("OnObjSrvError");													// Inform user
+		}
+		
+		function _API_Callback_InvalidSettings()
+		{
+			alert("OnObjSrvInvalidSettings");										// Inform user
+		}
+		
+		function _API_Callback_IndicationUpdate(jsonData)
+		{
+			var nIndex;																// Counting variable
+			var lightbulb;															// Reference to imgage "lightbulb"
+			
+			if((jsonData.Result == true) && (jsonData.Service == "GetIndication"))	// If successfully received indications
+			{
+				for(nIndex = 0; nIndex < jsonData.Data.length; nIndex ++)			// Loop to handle every datapoint
+				{
+					if(jsonData.Data[nIndex].Datapoint == 2)						// If we have communication object 2 (status response of switching actuator)
+					{
+						lightbulb = document.getElementById("lightbulb1");			// Get element "lightbulb1"
+						
+						SwitchLightBulb(lightbulb, jsonData.Data[nIndex].Value);	// Switch lightbulb
+					}
+					
+					if(jsonData.Data[nIndex].Datapoint == 4)						// If we have communication object 4 (status response of switching actuator)
+					{
+						lightbulb = document.getElementById("lightbulb2");			// Get element "lightbulb1"
+						
+						SwitchLightBulb(lightbulb, jsonData.Data[nIndex].Value);	// Switch lightbulb
+					}
+				}
+			}
+		}
+		
+		function SwitchLightBulb(lightbulb, value)
+		{
+			if(value == 0)															// If we have to switch off
+			{
+				lightbulb.src = "lightbulb-off.jpg";								// Show lightbulb switched off
+			}
+			else																	// Else: We have to switch on
+			{
+				lightbulb.src = "lightbulb.jpg";									// Show lightbulb switched on
+			}
+		}
+
+	</script>
+	
+	
+	<style type="text/css">
+
+	#standard
+	{
+		width: 350px;
+		height: 150px;
+		border: 4px solid cornflowerblue;
+		background: lavender;
+	}
+
+	</style>
+	
+</head>
+
+<body onload="OnInit()">
+
+	<h1>KNX IP BAOS 771</h1>
+	<h2>Push Button Demo</h2>
+
+	<div>
+		<table border="0">
+			<colgroup>
+				<col width="400">
+				<col width="400">
+			</colgroup>
+			<tr>
+				<td>
+					<form name="FormSetIpAddr">
+						<fieldset id="standard">
+							<legend>General</legend>
+							<input type="text" id="IpAddr" name="IpAddr" size="15" />
+							<br />
+							<br />
+							<input type="button" value="Update" onclick="OnBtnUpdateIpAddr()" />
+						</fieldset>
+					</form>
+				</td>
+				<td>
+					<form name="FormIndication">
+						<fieldset id="standard">
+							<legend>IndicationListener</legend>
+							<input type="button" value="Start" onclick="OnBtnStartIndicationListener()" />
+							<input type="button" value="Stop" onclick="OnBtnStopIndicationListener()" />
+						</fieldset>
+					</form>
+				</td>
+			</tr>
+		</table>
+	</div>
+
+	<div>
+		<table border="0">
+			<colgroup>
+				<col width="400">
+				<col width="400">
+			</colgroup>
+			<tr>
+				<td>
+					<form name="PushButtonDemoChn1">
+						<fieldset id="standard">
+							<legend>PushButtonDemo Channel 1</legend>
+							<img id="lightbulb1" src="lightbulb-off.jpg" />
+							<input type="button" value="On" onclick="OnBtnPbDemo_SwitchChn1(1)" />
+							<input type="button" value="Off" onclick="OnBtnPbDemo_SwitchChn1(0)" />
+						</fieldset>
+					</form>
+				</td>
+				<td>
+					<form name="PushButtonDemoChn2">
+						<fieldset id="standard">
+							<legend>PushButtonDemo Channel 2</legend>
+							<img id="lightbulb2" src="lightbulb-off.jpg" />
+							<input type="button" value="On" onclick="OnBtnPbDemo_SwitchChn2(1)" />
+							<input type="button" value="Off" onclick="OnBtnPbDemo_SwitchChn2(0)" />
+						</fieldset>
+					</form>
+				</td>
+			</tr>
+		</table>
+	</div>
+
+</body>
+</html>
